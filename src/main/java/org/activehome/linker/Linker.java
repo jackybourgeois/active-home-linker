@@ -52,9 +52,27 @@ import org.kevoree.pmodeling.api.ModelCloner;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-
+/**
+ * @author Jacky Bourgeois
+ * @version %I%, %G%
+ */
 @ComponentType
 public class Linker extends Service implements RequestHandler {
+
+    @Param(defaultValue = "Automate the deployment of Active Home component on Kevoree")
+    private String description;
+
+    @Param(defaultValue = "/activehome-linker/master/docs/linker.png")
+    private String img;
+
+    @Param(defaultValue = "/activehome-linker/master/docs/linker.md")
+    private String doc;
+
+    @Param(defaultValue = "/activehome-linker/master/docs/linker.kevs")
+    private String demoScript;
+
+    @Param(defaultValue = "/activehome-linker")
+    private String src;
 
     private static String wsPort = "9050";
 
