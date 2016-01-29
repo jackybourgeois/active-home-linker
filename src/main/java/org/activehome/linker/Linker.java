@@ -6,7 +6,7 @@ package org.activehome.linker;
  * $Id:$
  * $HeadURL:$
  * %%
- * Copyright (C) 2016 org.activehome
+ * Copyright (C) 2016 Active Home Project
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -59,19 +59,10 @@ import java.util.LinkedList;
 @ComponentType
 public class Linker extends Service implements RequestHandler {
 
-    @Param(defaultValue = "Automate the deployment of Active Home component on Kevoree")
+    @Param(defaultValue = "Automate the deployment of Active Home component on Kevoree.")
     private String description;
 
-    @Param(defaultValue = "/activehome-linker/master/docs/linker.png")
-    private String img;
-
-    @Param(defaultValue = "/activehome-linker/master/docs/linker.md")
-    private String doc;
-
-    @Param(defaultValue = "/activehome-linker/master/docs/linker.kevs")
-    private String demoScript;
-
-    @Param(defaultValue = "/activehome-linker")
+    @Param(defaultValue = "/active-home-linker")
     private String src;
 
     private static String wsPort = "9050";
@@ -122,7 +113,7 @@ public class Linker extends Service implements RequestHandler {
     /**
      * Look for the a component type, retrieve properties (ports, attributes)
      * Then replace default values with those provided
-     * <p/>
+     *
      * Minimal requirement: getType() != null
      *
      * @param initialProp properties that will be insert in the results
