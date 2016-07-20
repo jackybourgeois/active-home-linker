@@ -26,28 +26,29 @@ package org.activehome.linker;
 
 import org.activehome.com.Request;
 import org.activehome.com.RequestCallback;
-import org.activehome.com.error.ErrorType;
 import org.activehome.com.error.Error;
+import org.activehome.com.error.ErrorType;
 import org.activehome.context.data.ComponentProperties;
-import org.activehome.context.helper.ModelHelper;
-import org.activehome.service.Service;
-import org.activehome.service.RequestHandler;
-import org.activehome.tools.NetworkHelper;
 import org.activehome.context.data.UserInfo;
-import org.kevoree.*;
-import org.kevoree.Package;
-import org.kevoree.annotation.*;
+import org.activehome.context.helper.ModelHelper;
+import org.activehome.service.RequestHandler;
+import org.activehome.service.Service;
 import org.kevoree.annotation.ComponentType;
+import org.kevoree.annotation.KevoreeInject;
+import org.kevoree.annotation.Param;
+import org.kevoree.annotation.Start;
 import org.kevoree.api.BootstrapService;
+import org.kevoree.Package;
+import org.kevoree.ContainerRoot;
+import org.kevoree.ComponentInstance;
+import org.kevoree.ContainerNode;
 import org.kevoree.api.KevScriptService;
-import org.kevoree.api.ModelService;
-import org.kevoree.api.handler.ModelListener;
 import org.kevoree.api.handler.UUIDModel;
-import org.kevoree.api.handler.UpdateContext;
 import org.kevoree.factory.DefaultKevoreeFactory;
 import org.kevoree.factory.KevoreeFactory;
 import org.kevoree.log.Log;
 import org.kevoree.pmodeling.api.ModelCloner;
+import org.kevoree.TypeDefinition;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -59,14 +60,11 @@ import java.util.LinkedList;
 @ComponentType
 public class Linker extends Service implements RequestHandler {
 
+    private static String wsPort = "9050";
     @Param(defaultValue = "Automate the deployment of Active Home component on Kevoree.")
     private String description;
-
     @Param(defaultValue = "/active-home-linker")
     private String src;
-
-    private static String wsPort = "9050";
-
     private ModelCloner cloner;
 
     @KevoreeInject
@@ -113,7 +111,7 @@ public class Linker extends Service implements RequestHandler {
     /**
      * Look for the a component type, retrieve properties (ports, attributes)
      * Then replace default values with those provided
-     *
+     * <p>
      * Minimal requirement: getType() != null
      *
      * @param initialProp properties that will be insert in the results
@@ -188,7 +186,7 @@ public class Linker extends Service implements RequestHandler {
                 logInfo(script);
                 getModelService().submitScript(script, applied -> {
                     if (applied) {
-                        if (typeDef!=null) {
+                        if (typeDef != null) {
                             callback.success(true);
                         } else {
                             UUIDModel newModel = getModelService().getCurrentModel();
@@ -439,6 +437,20 @@ public class Linker extends Service implements RequestHandler {
                 }
             }
         }
+    }
+
+    public void pushScript(final String script,
+                           final RequestCallback callback) {
+        logInfo("pushScript:\n" + script);
+        getModelService().submitScript(script, applied -> {
+            if (applied) {
+                callback.success(true);
+            } else {
+                String errorMsg = "Waiting successful adaptation (stop)";
+                Log.error(errorMsg);
+                callback.error(new Error(ErrorType.MODEL_UPDATE_FAILED, "Error while pushing script."));
+            }
+        });
     }
 }
 
