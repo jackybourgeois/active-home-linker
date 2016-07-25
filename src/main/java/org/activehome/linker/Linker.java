@@ -439,18 +439,70 @@ public class Linker extends Service implements RequestHandler {
         }
     }
 
+    /**
+     * Detects all 'add' command and call startComponent
+     * for each of them (allowing to bind all dynamic links),
+     * then pushes the remaining script.
+     */
     public void pushScript(final String script,
                            final RequestCallback callback) {
-        logInfo("pushScript:\n" + script);
-        getModelService().submitScript(script, applied -> {
-            if (applied) {
-                callback.success(true);
+        String remainingScript = "";
+
+        LinkedList<ComponentProperties> compToStart = new LinkedList<>();
+        for (String line : script.split("\n")) {
+            if (line.startsWith("add")) {
+                String[] compInfoStr = line.replace("add ", "").replaceAll(" ","").split(":");
+                String type = compInfoStr[1];
+                compToStart.add(new ComponentProperties(type,compInfoStr[0].split("\\.")[1]));
             } else {
-                String errorMsg = "Waiting successful adaptation (stop)";
-                Log.error(errorMsg);
-                callback.error(new Error(ErrorType.MODEL_UPDATE_FAILED, "Error while pushing script."));
+                remainingScript += "\n" + line;
+            }
+        }
+
+        final String finalRemainingScript = remainingScript;
+        startComponentList(compToStart, null, new RequestCallback() {
+            @Override
+            public void success(Object result) {
+                logInfo("## ## component started, remaining script:");
+                logInfo(finalRemainingScript);
+                getModelService().submitScript(finalRemainingScript, applied -> {
+                    if (applied) {
+                        callback.success(true);
+                    } else {
+                        callback.error(new Error(ErrorType.MODEL_UPDATE_FAILED, "Error while pushing script."));
+                    }
+                });
+            }
+
+            @Override
+            public void error(Error result) {
+                callback.error(result);
             }
         });
+
+    }
+
+    /**
+     * recursively calling startComponent for each component to start
+     */
+    public void startComponentList(final LinkedList<ComponentProperties> compToStart,
+                                   final UserInfo userInfo,
+                                   final RequestCallback callback) {
+        if (compToStart.size()>0) {
+            startComponent(compToStart.removeFirst(), userInfo, new RequestCallback() {
+                @Override
+                public void success(Object result) {
+                    startComponentList(compToStart, userInfo, callback);
+                }
+
+                @Override
+                public void error(Error result) {
+                    callback.error(result);
+                }
+            });
+        } else {
+            callback.success(true);
+        }
     }
 }
 
